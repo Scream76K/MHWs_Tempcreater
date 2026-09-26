@@ -1,0 +1,14 @@
+MH Wilds Build Template Creator v0.2.0
+
+Changes:
+- Added direct MHDB API loading for skills/armor/decorations/charms/armor sets/weapons.
+- Added localStorage DB cache and DB counts/status.
+- Ported the current simulator OCR engine from OCR integration r1.1.17 as an independent embedded engine.
+- Preserved official weapon kind as the source of truth; only official API weapon kinds are accepted.
+- Added OCR result -> template editor bridge. Results remain editable; no guessed MHDB records are created.
+- Template JSON remains compatible with the simulator BUILD_TEMPLATE_DB format.
+
+Checks:
+- All inline JavaScript blocks: node --check PASS
+- Generated HTML exists: PASS
+- ZIP integrity: pending after packaging
