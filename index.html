@@ -1,4 +1,4 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>MH Wilds ビルドテンプレート作成ツール v0.2.2</title>
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>MH Wilds ビルドテンプレート作成ツール v0.2.4</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 :root{--ink:#25221d;--muted:#71695d;--line:#d8cdb9;--paper:#fbf7ee;--paper2:#f3ecdd;--accent:#5d6848;--danger:#8b5148}
@@ -17,7 +17,7 @@
 const $id=id=>document.getElementById(id); const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const API='https://wilds.mhdb.io/ja';
 const KINDS=['great-sword','long-sword','sword-and-shield','dual-blades','hammer','hunting-horn','lance','gunlance','switch-axe','charge-blade','insect-glaive','light-bowgun','heavy-bowgun','bow'];
-let DB={weapons:[],armor:[],charms:[],decorations:[],skills:[],sets:[],monsters:[]};
+let DB={weapons:[],armor:[],charms:[],decorations:[],skills:[],sets:[],monsters:[]};window.__mainCharmDBRowsCache=null;window.__mainCharmDBRowsCacheSource=null;
 window.__getBetaDB=()=>DB;
 async function getJSON(url,timeout=15000){const c=new AbortController();const t=setTimeout(()=>c.abort(),timeout);try{const r=await fetch(url,{cache:'no-store',mode:'cors',signal:c.signal});if(!r.ok)throw Error('HTTP '+r.status);return await r.json()}finally{clearTimeout(t)}}
 async function all(path){const out=[];let offset=0,limit=250;for(let i=0;i<200;i++){const a=await getJSON(API+path+`?limit=${limit}&offset=${offset}`);if(!Array.isArray(a))throw Error(path+' が配列ではありません');out.push(...a);if(a.length<limit)break;offset+=limit}return out}
@@ -25,8 +25,8 @@ function renderDBStatus(msg,cls=''){$id('dbStatus').innerHTML=`<span class="${cl
 function renderCounts(){const defs=[['weapons','武器'],['armor','防具'],['decorations','装飾品'],['charms','護石'],['skills','スキル'],['sets','シリーズ']];$id('dbCounts').innerHTML=defs.map(([k,l])=>`<div class="dbcount">${l}<b>${Array.isArray(DB[k])?DB[k].length:0}</b></div>`).join('')}
 function saveDB(){try{localStorage.setItem('mhwilds-template-creator-db-v1',JSON.stringify({savedAt:new Date().toISOString(),data:DB}))}catch(e){}}
 function loadSavedDB(){try{const x=JSON.parse(localStorage.getItem('mhwilds-template-creator-db-v1')||'null');if(x?.data?.weapons?.length&&x?.data?.armor?.length){DB=x.data;renderCounts();refreshEquipmentDBSelectors();refreshDecorationDBSelectors();renderDBStatus(`保存済みDBを読み込みました（${new Date(x.savedAt||Date.now()).toLocaleString('ja-JP')}）`,'warn');return true}}catch(e){}return false}
-$id('loadDB').onclick=async()=>{const b=$id('loadDB');b.disabled=true;renderDBStatus('MHDBを取得中…','warn');try{const [skills,armor,decorations,charms,sets,weapons]=await Promise.all([all('/skills'),all('/armor'),all('/decorations'),all('/charms'),all('/armor/sets'),all('/weapons')]);DB={skills,armor,decorations,charms,sets,weapons:weapons.filter(w=>KINDS.includes(String(w?.kind||'')))};saveDB();renderCounts();refreshEquipmentDBSelectors();refreshDecorationDBSelectors();renderDBStatus(`取得完了：武器${DB.weapons.length} / 防具${DB.armor.length} / 装飾品${DB.decorations.length} / 護石${DB.charms.length}`,'ok');if(window.__syncEmbeddedOCRDB)await window.__syncEmbeddedOCRDB();}catch(e){console.error(e);renderDBStatus('MHDB取得失敗：'+(e?.message||e),'bad')}finally{b.disabled=false}};
-$id('clearDB').onclick=()=>{localStorage.removeItem('mhwilds-template-creator-db-v1');DB={weapons:[],armor:[],charms:[],decorations:[],skills:[],sets:[],monsters:[]};renderCounts();renderDBStatus('保存DBを削除しました。','warn');window.__syncEmbeddedOCRDB?.();refreshEquipmentDBSelectors();refreshDecorationDBSelectors()};
+$id('loadDB').onclick=async()=>{const b=$id('loadDB');b.disabled=true;renderDBStatus('MHDBを取得中…','warn');try{const [skills,armor,decorations,charms,sets,weapons]=await Promise.all([all('/skills'),all('/armor'),all('/decorations'),all('/charms'),all('/armor/sets'),all('/weapons')]);DB={skills,armor,decorations,charms,sets,weapons:weapons.filter(w=>KINDS.includes(String(w?.kind||'')))};window.__mainCharmDBRowsCache=null;window.__mainCharmDBRowsCacheSource=null;saveDB();renderCounts();refreshEquipmentDBSelectors();refreshDecorationDBSelectors();renderDBStatus(`取得完了：武器${DB.weapons.length} / 防具${DB.armor.length} / 装飾品${DB.decorations.length} / 護石${DB.charms.length}`,'ok');if(window.__syncEmbeddedOCRDB)await window.__syncEmbeddedOCRDB();}catch(e){console.error(e);renderDBStatus('MHDB取得失敗：'+(e?.message||e),'bad')}finally{b.disabled=false}};
+$id('clearDB').onclick=()=>{localStorage.removeItem('mhwilds-template-creator-db-v1');DB={weapons:[],armor:[],charms:[],decorations:[],skills:[],sets:[],monsters:[]};window.__mainCharmDBRowsCache=null;window.__mainCharmDBRowsCacheSource=null;renderCounts();renderDBStatus('保存DBを削除しました。','warn');window.__syncEmbeddedOCRDB?.();refreshEquipmentDBSelectors();refreshDecorationDBSelectors()};
 const slots=[['head','頭'],['chest','胴'],['arms','腕'],['waist','腰'],['legs','脚']];
 function dbDecorationOptions(selected='',slot=2){const rows=Array.isArray(DB.decorations)?DB.decorations:[];const vals=[];const seen=new Set();for(const d of rows){const name=String(d?.name||'').trim();if(!name||seen.has(name))continue;const req=Number(d?.requiredSlotLevel??d?.slotLevel??d?.level??d?.slot??0);if(req&&req>Number(slot||1))continue;seen.add(name);vals.push(name)}vals.sort((a,b)=>a.localeCompare(b,'ja'));if(selected&&!seen.has(selected))vals.unshift(selected);return `<option value="">装飾品を選択</option>`+vals.map(n=>`<option value="${esc(n)}" ${n===selected?'selected':''}>${esc(n)}</option>`).join('')}
 function refreshDecorationDBSelectors(){document.querySelectorAll('[data-deco-db]').forEach(sel=>{const key=sel.dataset.decoDb;const row=sel.closest('.deco-row');const slot=Number(row?.querySelector('[data-deco-slot]')?.value||2);const cur=sel.value||row?.querySelector(`[data-deco-name=\"${key}\"]`)?.value||'';sel.innerHTML=dbDecorationOptions(cur,slot);if(cur)sel.value=cur})}
@@ -63,11 +63,15 @@ function addCharmDeco(name='',slot=2){const box=$id('charmDecos');if(!box)return
 function renderCharmSkills(skillRows,selected=[]){
   const box=$id('charmSkills'); if(!box)return;
   const rows=Array.isArray(skillRows)?skillRows:[];
-  box.innerHTML=rows.map((sk,i)=>{
+  const options=rows.map(sk=>{
     const name=String(sk?.name||sk?.skill?.name||'').trim();
-    const max=Number(sk?.maxLevel??sk?.level??sk?.rank??selected[i]?.maxLevel??1)||1;
-    const cur=Number(selected[i]?.level??sk?.level??1)||1;
-    return `<div class="deco-row"><select data-charm-skill><option value="">選択してください</option><option value="${esc(name)}" selected>${esc(name)}</option></select><select data-charm-skill-level>${Array.from({length:max},(_,j)=>`<option value="${j+1}" ${j+1===cur?'selected':''}>Lv${j+1}</option>`).join('')}</select></div>`;
+    const max=Number(sk?.maxLevel??sk?.level??sk?.rank??sk?.max??1)||1;
+    return name?{name,max}:null;
+  }).filter(Boolean);
+  box.innerHTML=options.map((sk,i)=>{
+    const selectedRow=selected[i]||{};
+    const cur=Math.max(1,Math.min(sk.max,Number(selectedRow.level??sk.level??1)||1));
+    return `<div class="deco-row"><select data-charm-skill><option value="">選択してください</option>${options.map(o=>`<option value="${esc(o.name)}" ${o.name===sk.name?'selected':''}>${esc(o.name)}</option>`).join('')}</select><select data-charm-skill-level>${Array.from({length:sk.max},(_,j)=>`<option value="${j+1}" ${j+1===cur?'selected':''}>Lv${j+1}</option>`).join('')}</select></div>`;
   }).join('');
 }
 function addSkill(name='',level=1){const box=$id('skills'),row=document.createElement('div');row.className='deco-row';row.innerHTML=`<input data-skill-name value="${esc(name)}" placeholder="スキル名"><input data-skill-level type="number" min="1" max="10" value="${level}"><button type="button">×</button>`;row.querySelector('button').onclick=()=>row.remove();box.appendChild(row)}$id('addSkill').onclick=()=>addSkill();
@@ -89,17 +93,47 @@ function normalizeCharmSlotLevelsOuter(v){
   }
   return [];
 }
+function normalizeMainCharmDBRows(rows){
+  const out=[];
+  for(const c of (Array.isArray(rows)?rows:[])){
+    const ranks=Array.isArray(c?.ranks)&&c.ranks.length?c.ranks:[c];
+    for(const r of ranks){
+      const name=String(r?.name||c?.name||'').trim();
+      if(!name) continue;
+      const slots=r?.slotLevels??r?.decorationSlots??r?.slots??c?.slotLevels??c?.decorationSlots??c?.slots;
+      const skills=Array.isArray(r?.skills)?r.skills:(Array.isArray(c?.skills)?c.skills:[]);
+      out.push({
+        ...c, ...r,
+        id:r?.id??c?.id??null,
+        gameId:r?.gameId??c?.gameId??null,
+        name,
+        slotLevels:normalizeCharmSlotLevelsOuter(slots),
+        skills
+      });
+    }
+  }
+  return out;
+}
+function getMainCharmDBRows(){
+  if(!Array.isArray(DB.charms)) return [];
+  if(!window.__mainCharmDBRowsCache || window.__mainCharmDBRowsCacheSource!==DB.charms){
+    window.__mainCharmDBRowsCache=normalizeMainCharmDBRows(DB.charms);
+    window.__mainCharmDBRowsCacheSource=DB.charms;
+  }
+  return window.__mainCharmDBRowsCache;
+}
 function findCharmDBRecord(ocrBest){
   if(!ocrBest) return null;
-  const rows=Array.isArray(DB.charms)?DB.charms:[];
+  const rows=getMainCharmDBRows();
   const sameId=rows.filter(c=>
     (ocrBest.id!=null && c?.id!=null && String(c.id)===String(ocrBest.id)) ||
     (ocrBest.gameId!=null && c?.gameId!=null && String(c.gameId)===String(ocrBest.gameId))
   );
   const pool=sameId.length?sameId:rows;
   const target=normalizeCharmNameForMatch(ocrBest.name);
+  if(!target) return null;
   return pool.find(c=>normalizeCharmNameForMatch(c?.name)===target) ||
-         pool.find(c=>normalizeCharmNameForMatch(c?.name).includes(target)||target.includes(normalizeCharmNameForMatch(c?.name))) || null;
+         pool.find(c=>{const n=normalizeCharmNameForMatch(c?.name);return n.includes(target)||target.includes(n)}) || null;
 }
 function applyCharmDBSlots(best){
   const info=$id('charmDBInfo'), slots=$id('charmSlots');
