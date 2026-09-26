@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MH Wilds ビルドテンプレート作成ツール v0.1.0</title>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+:root{--ink:#29251f;--muted:#746b5d;--line:#d8cdb9;--paper:#fffdf8;--bg:#eee9df;--accent:#65724e;--warn:#9b6a25;--bad:#934f48}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f1e8,#e8e1d5);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;font-size:14px}main{max-width:980px;margin:auto;padding:12px}.hero,.card{background:rgba(255,253,248,.97);border:1px solid var(--line);border-radius:16px;box-shadow:0 3px 14px rgba(54,45,31,.07);padding:16px;margin-bottom:12px}.hero h1{font-size:21px;margin:0}.sub{color:var(--muted);line-height:1.55;margin-top:7px}.stepbar{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:14px}.stepbar div{padding:7px;border-radius:8px;text-align:center;background:#eee8dc;color:#817765;font-size:11px;font-weight:800}.stepbar .active{background:#697653;color:white}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.field{margin-top:9px}label{display:block;font-size:11px;font-weight:800;color:#625a4e;margin-bottom:4px}input,select,textarea{width:100%;border:1px solid #cfc2ad;border-radius:9px;padding:9px;background:#fff;color:var(--ink);font:inherit}textarea{min-height:100px;resize:vertical}.upload{border:1px dashed #aa9a7d;border-radius:12px;padding:14px;background:#faf5ea;text-align:center}.upload input{display:none}.upload label{cursor:pointer;font-size:14px;color:#514a40;padding:10px}.thumb{display:none;max-width:100%;max-height:280px;margin:10px auto 0;border-radius:9px;border:1px solid var(--line)}.thumb.show{display:block}.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}button{border:1px solid #b7aa93;background:#f5eee2;color:var(--ink);border-radius:9px;padding:9px 13px;font-weight:800;cursor:pointer}button.primary{background:var(--accent);border-color:var(--accent);color:white}button.danger{color:#fff;background:var(--bad);border-color:var(--bad)}button:disabled{opacity:.45;cursor:not-allowed}.progress{height:8px;background:#e7e0d3;border-radius:99px;overflow:hidden;margin-top:10px}.bar{height:100%;width:0;background:#7b875f;transition:width .2s}.status{font-size:12px;color:var(--muted);margin-top:7px}.ocr-lines{max-height:240px;overflow:auto;border:1px solid var(--line);border-radius:9px;background:#fff;margin-top:8px}.ocr-line{padding:6px 8px;border-bottom:1px solid #eee7dc;font-size:12px}.ocr-line:last-child{border-bottom:0}.slot{border:1px solid var(--line);border-radius:11px;padding:11px;margin-top:8px;background:#fffdf9}.slot-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.badge{font-size:10px;padding:4px 7px;border-radius:99px;background:#e8eedf;color:#566642}.badge.warn{background:#f3e2c3;color:#8b6429}.decor-row{display:grid;grid-template-columns:1fr 90px 34px;gap:6px;margin-top:6px}.mini{font-size:11px;color:var(--muted)}.json{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;min-height:330px;font-size:12px}.notice{padding:10px 12px;border-radius:10px;background:#f1eee5;color:#625a4e;font-size:12px;line-height:1.55;margin-top:9px}.notice.warn{background:#fff6e5;color:#805d28}.hidden{display:none!important}@media(max-width:700px){.grid2,.grid3{grid-template-columns:1fr}.stepbar{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<main>
+<section class="hero">
+<h1>⚔️ MH Wilds ビルドテンプレート作成ツール</h1>
+<div class="sub">スクリーンショット → OCR → 人が確認・修正 → テンプレートJSON出力。シミュレータ本体とは独立して動作します。</div>
+<div class="stepbar"><div class="active">① 基本情報</div><div>② スクショ解析</div><div>③ 確認・修正</div><div>④ JSON出力</div></div>
+</section>
+
+<section class="card">
+<h2>① テンプレート基本情報</h2>
+<div class="grid3">
+<div class="field"><label>武器種</label><select id="weaponType"><option value="great-sword">大剣</option><option value="long-sword">太刀</option><option value="sword-and-shield">片手剣</option><option value="dual-blades">双剣</option><option value="hammer">ハンマー</option><option value="hunting-horn">狩猟笛</option><option value="lance">ランス</option><option value="gunlance">ガンランス</option><option value="switch-axe">スラッシュアックス</option><option value="charge-blade">チャージアックス</option><option value="insect-glaive">操虫棍</option><option value="light-bowgun">ライトボウガン</option><option value="heavy-bowgun">ヘビィボウガン</option><option value="bow" selected>弓</option></select></div>
+<div class="field"><label>作者 / チャンネル</label><input id="creator" placeholder="例：さらだ"></div>
+<div class="field"><label>ビルド名</label><input id="buildName" placeholder="例：属性弓火力型"></div>
+</div>
+<div class="grid2">
+<div class="field"><label>出典</label><input id="source" placeholder="YouTube / ブログ / その他"></div>
+<div class="field"><label>URL</label><input id="sourceUrl" placeholder="https://..."></div>
+</div>
+<div class="field"><label>備考</label><textarea id="notes" placeholder="想定用途、投稿時点、作者の説明など"></textarea></div>
+</section>
+
+<section class="card">
+<h2>② スクリーンショット解析</h2>
+<div class="sub">装備画面と装飾品画面は別々に登録できます。OCRは候補を作るための補助で、誤認識を自動確定しません。</div>
+<div class="grid2">
+<div class="upload"><label for="equipFile">📷 装備一覧スクショを選択</label><input id="equipFile" type="file" accept="image/*"><img id="equipPreview" class="thumb"></div>
+<div class="upload"><label for="decoFile">💎 装飾品一覧スクショを選択</label><input id="decoFile" type="file" accept="image/*"><img id="decoPreview" class="thumb"></div>
+</div>
+<div class="btns"><button class="primary" id="ocrAll">選択したスクショをOCR</button><button id="clearOCR">OCR結果をクリア</button></div>
+<div class="progress"><div id="bar" class="bar"></div></div><div id="status" class="status">待機中</div>
+<div class="grid2">
+<div><h3>装備OCR結果</h3><div id="equipOCR" class="ocr-lines"><div class="ocr-line">まだ解析していません。</div></div></div>
+<div><h3>装飾品OCR結果</h3><div id="decoOCR" class="ocr-lines"><div class="ocr-line">まだ解析していません。</div></div></div>
+</div>
+</section>
+
+<section class="card">
+<h2>③ 確認・修正</h2>
+<div class="notice">ここで入力した名称がテンプレートになります。現段階では推測でMHDBレコードを作りません。後段のシミュレータ側で正式DBへ照合します。</div>
+<div id="equipmentForm"></div>
+<div class="slot"><div class="slot-head"><b>護石</b><span class="badge">未確定のまま保存可能</span></div><div class="field"><input id="charm" placeholder="例：スタミナ急速回復ノ護石Ⅱ"></div><div class="field"><label>護石の装飾品</label><div id="charmDecos"></div><button type="button" id="addCharmDeco">＋装飾品</button></div></div>
+<div class="slot"><div class="slot-head"><b>発動スキル（任意）</b><span class="mini">スクショから確認できたものだけ入力</span></div><div id="skills"></div><button type="button" id="addSkill">＋スキル</button></div>
+</section>
+
+<section class="card">
+<h2>④ テンプレートJSON</h2>
+<div class="btns"><button class="primary" id="makeJSON">JSONを生成</button><button id="copyJSON">JSONをコピー</button><button id="downloadJSON">JSONを保存</button><button id="reset" class="danger">全消去</button></div>
+<textarea id="json" class="json" spellcheck="false" placeholder="ここにテンプレートJSONが生成されます"></textarea>
+<div class="notice">出力形式は現在のシミュレータの <code>BUILD_TEMPLATE_DB.templates</code> と互換にしています。武器・防具・護石・装飾品の名称は lookup key として保存し、公式MHDBデータそのものはテンプレート側に複製しません。</div>
+</section>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const slots=[['head','頭'],['chest','胴'],['arms','腕'],['waist','腰'],['legs','脚']];
+const state={ocr:{equipment:[],decorations:[]}};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function setPreview(input,img){input.addEventListener('change',()=>{const f=input.files?.[0];if(!f){img.classList.remove('show');img.removeAttribute('src');return}const u=URL.createObjectURL(f);img.src=u;img.classList.add('show')})}
+setPreview($('equipFile'),$('equipPreview'));setPreview($('decoFile'),$('decoPreview'));
+function renderEquipmentForm(){
+ const names={mainWeapon:'武器',head:'頭',chest:'胴',arms:'腕',waist:'腰',legs:'脚'};
+ $('equipmentForm').innerHTML=Object.entries(names).map(([k,label])=>`<div class="slot"><div class="slot-head"><b>${label}</b><span class="badge" id="badge-${k}">未確定</span></div><div class="field"><input data-equip="${k}" placeholder="${label}防具名 / 武器名"></div><div class="field"><label>装飾品</label><div id="decos-${k}"></div><button type="button" onclick="addDeco('${k}')">＋装飾品</button></div></div>`).join('');
+}
+renderEquipmentForm();
+function addDeco(key,name=''){const box=$('decos-'+key);const row=document.createElement('div');row.className='decor-row';row.innerHTML=`<input data-deco-name="${key}" value="${esc(name)}" placeholder="装飾品名"><input data-deco-slot="${key}" type="number" min="1" max="4" value="2" aria-label="スロットLv"><button type="button" title="削除">×</button>`;row.querySelector('button').onclick=()=>row.remove();box.appendChild(row)}
+window.addDeco=addDeco;
+function addCharmDeco(name=''){const box=$('charmDecos');const row=document.createElement('div');row.className='decor-row';row.innerHTML=`<input data-charm-deco value="${esc(name)}" placeholder="装飾品名"><input data-charm-slot type="number" min="1" max="4" value="2"><button type="button">×</button>`;row.querySelector('button').onclick=()=>row.remove();box.appendChild(row)}
+$('addCharmDeco').onclick=()=>addCharmDeco();
+function addSkill(name='',level=''){const box=$('skills');const row=document.createElement('div');row.className='decor-row';row.innerHTML=`<input data-skill-name value="${esc(name)}" placeholder="スキル名"><input data-skill-level type="number" min="1" max="10" value="${esc(level||1)}"><button type="button">×</button>`;row.querySelector('button').onclick=()=>row.remove();box.appendChild(row)}
+$('addSkill').onclick=()=>addSkill();
+function cleanText(s){return String(s||'').replace(/\s+/g,' ').trim()}
+function renderOCR(target,lines){target.innerHTML=lines.length?lines.map((x,i)=>`<div class="ocr-line"><b>${i+1}.</b> ${esc(x.text)} <span class="mini">(${Math.round(x.conf||0)}%)</span></div>`).join(''):'<div class="ocr-line">文字を認識できませんでした。</div>'}
+async function ocrFile(file,kind){
+ const {data}=await Tesseract.recognize(file,'jpn',{logger:m=>{if(m.status==='recognizing text'){const p=Math.round((m.progress||0)*100);$('bar').style.width=p+'%';$('status').textContent=(kind==='equipment'?'装備':'装飾品')+'OCR中… '+p+'%'}}});
+ const lines=(data.lines||[]).map(l=>({text:cleanText(l.text),conf:Number(l.confidence||0)})).filter(x=>x.text);
+ return lines;
+}
+function tryFillFromOCR(lines){
+ // Conservative label-based extraction only. No fuzzy guessing of item names.
+ const text=lines.map(x=>x.text);
+ const patterns=[['head',/頭防具/],['chest',/胴防具/],['arms',/腕防具/],['waist',/腰防具/],['legs',/脚防具/],['mainWeapon',/メイン武器/]];
+ for(const [key,re] of patterns){const i=text.findIndex(t=>re.test(t));if(i>=0&&text[i+1]){const input=document.querySelector(`[data-equip="${key}"]`);if(input&&!input.value)input.value=text[i+1]}}
+}
+$('ocrAll').onclick=async()=>{
+ const ef=$('equipFile').files?.[0],df=$('decoFile').files?.[0];if(!ef&&!df){$('status').textContent='スクリーンショットを選択してください。';return}
+ $('ocrAll').disabled=true;$('bar').style.width='0%';
+ try{if(ef){state.ocr.equipment=await ocrFile(ef,'equipment');renderOCR($('equipOCR'),state.ocr.equipment);tryFillFromOCR(state.ocr.equipment)}if(df){state.ocr.decorations=await ocrFile(df,'decorations');renderOCR($('decoOCR'),state.ocr.decorations)}$('status').textContent='OCR完了。結果を確認・修正してください。'}catch(e){console.error(e);$('status').textContent='OCR失敗：'+(e?.message||e)}finally{$('ocrAll').disabled=false;$('bar').style.width='100%'}};
+$('clearOCR').onclick=()=>{state.ocr={equipment:[],decorations:[]};renderOCR($('equipOCR'),[]);renderOCR($('decoOCR'),[]);$('status').textContent='OCR結果をクリアしました。'};
+function readDecos(key){return [...document.querySelectorAll(`[data-deco-name="${key}"]`)].map((e,i)=>({name:e.value.trim(),slot:Number(document.querySelectorAll(`[data-deco-slot="${key}"]`)[i]?.value||2)})).filter(x=>x.name)}
+function readCharmDecos(){return [...document.querySelectorAll('[data-charm-deco]')].map((e,i)=>({name:e.value.trim(),slot:Number(document.querySelectorAll('[data-charm-slot]')[i]?.value||2)})).filter(x=>x.name)}
+function makeTemplate(){
+ const armor={};for(const [k] of slots){const e=document.querySelector(`[data-equip="${k}"]`);armor[k]={name:(e?.value||'').trim(),decorations:readDecos(k)};}
+ const weapon=document.querySelector('[data-equip="mainWeapon"]')?.value.trim()||'';
+ const skills={};document.querySelectorAll('[data-skill-name]').forEach((e,i)=>{const n=e.value.trim();if(n)skills[n]=Number(document.querySelectorAll('[data-skill-level]')[i]?.value||1)});
+ return {templates:[{weapon_type:$('weaponType').value,weapon_name_jp:$('weaponType').selectedOptions[0].textContent,builds:[{id:'custom_'+Date.now(),creator:$('creator').value.trim()||'未入力',build_name:$('buildName').value.trim()||'未命名ビルド',source:$('source').value.trim()||'未入力',source_url:$('sourceUrl').value.trim(),weapons:weapon,weapon:{name:weapon,decorations:readDecos('mainWeapon')},armor,charm:$('charm').value.trim(),charm_decorations:readCharmDecos(),skills,notes:$('notes').value.trim()}]}]};
+}
+$('makeJSON').onclick=()=>{$('json').value=JSON.stringify(makeTemplate(),null,2)};
+$('copyJSON').onclick=async()=>{if(!$('json').value)$('json').value=JSON.stringify(makeTemplate(),null,2);try{await navigator.clipboard.writeText($('json').value);$('status').textContent='JSONをコピーしました。'}catch(e){$('status').textContent='コピーできませんでした。JSON欄から手動コピーしてください。'}};
+$('downloadJSON').onclick=()=>{if(!$('json').value)$('json').value=JSON.stringify(makeTemplate(),null,2);const blob=new Blob([$('json').value],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mhwilds_build_template.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+$('reset').onclick=()=>{if(!confirm('入力内容をすべて消去します。'))return;location.reload()};
+</script>
+</body></html>
