@@ -5,11 +5,11 @@
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(#f5f1e8,#e8e1d5);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP","Yu Gothic",Meiryo,sans-serif}main{max-width:1100px;margin:auto;padding:12px}.card{background:rgba(255,253,248,.97);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 3px 14px rgba(54,45,31,.07)}h1{font-size:22px;margin:0}h2{font-size:17px;margin:0 0 10px}h3{font-size:14px;margin:12px 0 7px}.sub{color:var(--muted);font-size:12px;line-height:1.55;margin-top:6px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}label{display:block;font-size:11px;font-weight:800;color:#625a4e;margin:7px 0 4px}input,select,textarea{width:100%;border:1px solid #cfc2ad;border-radius:9px;padding:9px;background:#fff;color:var(--ink);font:inherit}textarea{min-height:120px;resize:vertical}button{border:1px solid #b7aa93;background:#f5eee2;color:var(--ink);border-radius:9px;padding:9px 13px;font-weight:800;cursor:pointer}button.primary{background:var(--accent);border-color:var(--accent);color:#fff}button:disabled{opacity:.45;cursor:not-allowed}.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.dbgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:9px}.dbcount{padding:8px;border-radius:8px;background:#f1ede4;text-align:center;font-size:11px}.dbcount b{display:block;font-size:14px}.ok{color:#4f6b3d}.warn{color:#8b6429}.bad{color:#8b5148}.status{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}.slot{border:1px solid var(--line);border-radius:11px;padding:11px;margin-top:8px;background:#fffdf9}.slothead{display:flex;justify-content:space-between;gap:8px;align-items:center}.badge{font-size:10px;padding:4px 7px;border-radius:99px;background:#e8eedf;color:#566642}.badge.warn{background:#f3e2c3;color:#8b6429}.deco-row{display:grid;grid-template-columns:1fr 72px 34px;gap:6px;margin-top:6px}.json{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;min-height:360px;font-size:12px}.notice{padding:10px 12px;border-radius:10px;background:#f1eee5;color:#625a4e;font-size:12px;line-height:1.55;margin-top:9px}.hidden{display:none!important}#ocrEmbeddedHost{border:0}
 @media(max-width:760px){.grid2{grid-template-columns:1fr}.grid5{grid-template-columns:repeat(2,1fr)}.dbgrid{grid-template-columns:repeat(2,1fr)}}
 </style></head><body><main>
-<section class="card"><h1>⚒ MH Wilds ビルドテンプレート作成ツール <span style="font-size:12px;color:#777">v0.2.0</span></h1><div class="sub">シミュレータ本体とは独立。MHDBを読み込み、現在のOCRエンジンでスクショを解析し、確認・修正後にテンプレートJSONを書き出します。</div></section>
+<section class="card"><h1>⚒ MH Wilds ビルドテンプレート作成ツール <span style="font-size:12px;color:#777">v0.2.1</span></h1><div class="sub">シミュレータ本体とは独立。MHDBを読み込み、現在のOCRエンジンでスクショを解析し、確認・修正後にテンプレートJSONを書き出します。</div></section>
 <section class="card"><h2>① MHDBを読み込む</h2><div class="sub">現行シミュレータと同じ <b>wilds.mhdb.io/ja</b> を参照します。テンプレート側へDBレコードを複製せず、名称照合のためだけに利用します。</div><div class="btns"><button id="loadDB" class="primary">MHDBを取得 / 更新</button><button id="clearDB">保存DBを削除</button></div><div id="dbStatus" class="status">DB未取得</div><div id="dbCounts" class="dbgrid"></div></section>
 <section class="card"><h2>② テンプレート情報</h2><div class="grid2"><div><label>武器種</label><select id="weaponType"><option value="great-sword">大剣</option><option value="long-sword">太刀</option><option value="sword-and-shield">片手剣</option><option value="dual-blades">双剣</option><option value="hammer">ハンマー</option><option value="hunting-horn">狩猟笛</option><option value="lance">ランス</option><option value="gunlance">ガンランス</option><option value="switch-axe">スラッシュアックス</option><option value="charge-blade">チャージアックス</option><option value="insect-glaive">操虫棍</option><option value="light-bowgun">ライトボウガン</option><option value="heavy-bowgun">ヘビィボウガン</option><option value="bow" selected>弓</option></select></div><div><label>作者 / チャンネル</label><input id="creator" placeholder="例：さらだ"></div><div><label>ビルド名</label><input id="buildName" placeholder="例：属性弓火力型"></div><div><label>出典</label><input id="source" placeholder="YouTube / ブログ"></div><div><label>URL</label><input id="sourceUrl" placeholder="https://..."></div><div><label>備考</label><input id="notes" placeholder="想定用途・投稿時点など"></div></div></section>
 <section class="card"><h2>③ 現行OCRエンジン</h2><div class="sub">シミュレータ v1.1.17 で使用している装備位置検出・ROI生成・OCR・MHDB候補照合ロジックを移植しています。</div><div id="ocrEmbeddedHost"></div></section>
-<section class="card"><h2>④ OCR結果をテンプレートへ反映</h2><div class="sub">自動認識結果を入力欄へ移します。ここで人が確認・修正できます。未照合項目は推測で補完しません。</div><div class="btns"><button id="applyOCR" class="primary">OCR結果をテンプレートへ反映</button><button id="clearTemplate">テンプレート入力をクリア</button></div><div id="applyStatus" class="status">まだ反映していません。</div><div id="equipmentForm"></div><div class="slot"><div class="slothead"><b>護石</b><span class="badge">手動修正可能</span></div><input id="charm" placeholder="例：スタミナ急速回復ノ護石Ⅱ"><label>護石の装飾品</label><div id="charmDecos"></div><button id="addCharmDeco">＋装飾品</button></div><div class="slot"><div class="slothead"><b>主要スキル</b><span class="badge">任意</span></div><div id="skills"></div><button id="addSkill">＋スキル</button></div></section>
+<section class="card"><h2>④ OCR結果をテンプレートへ反映</h2><div class="sub">自動認識結果を入力欄へ移します。ここで人が確認・修正できます。未照合項目は推測で補完しません。</div><div class="btns"><button id="applyOCR" class="primary">OCR結果をテンプレートへ反映</button><button id="clearTemplate">テンプレート入力をクリア</button></div><div id="applyStatus" class="status">まだ反映していません。</div><div id="equipmentForm"></div><div class="slot"><div class="slothead"><b>護石</b><span class="badge">手動修正可能</span></div><input id="charm" placeholder="例：スタミナ急速回復ノ護石Ⅱ"><div id="charmDBInfo" class="note" style="margin-top:7px">護石名をDB照合すると、スロットが自動反映されます。</div><div id="charmSlots" class="note" style="margin-top:5px"></div><label>護石の装飾品</label><div id="charmDecos"></div><button id="addCharmDeco">＋装飾品</button></div><div class="slot"><div class="slothead"><b>主要スキル</b><span class="badge">任意</span></div><div id="skills"></div><button id="addSkill">＋スキル</button></div></section>
 <section class="card"><h2>⑤ テンプレートJSON</h2><div class="btns"><button id="makeJSON" class="primary">JSONを生成</button><button id="copyJSON">JSONをコピー</button><button id="downloadJSON">JSONを保存</button></div><textarea id="json" class="json" spellcheck="false"></textarea><div class="notice">出力は現在のシミュレータの <code>BUILD_TEMPLATE_DB.templates</code> と互換です。MHDBの公式レコード自体はJSONへ複製しません。</div></section>
 </main>
 <script>
@@ -35,10 +35,77 @@ function addCharmDeco(name='',slot=2){const box=$id('charmDecos'),row=document.c
 function addSkill(name='',level=1){const box=$id('skills'),row=document.createElement('div');row.className='deco-row';row.innerHTML=`<input data-skill-name value="${esc(name)}" placeholder="スキル名"><input data-skill-level type="number" min="1" max="10" value="${level}"><button type="button">×</button>`;row.querySelector('button').onclick=()=>row.remove();box.appendChild(row)}$id('addSkill').onclick=()=>addSkill();
 function readDecos(key){const ns=[...document.querySelectorAll(`[data-deco-name="${key}"]`)],ss=[...document.querySelectorAll(`[data-deco-slot="${key}"]`)];return ns.map((e,i)=>({name:e.value.trim(),slot:Number(ss[i]?.value||2)})).filter(x=>x.name)}
 function readCharmDecos(){const ns=[...document.querySelectorAll('[data-charm-deco]')],ss=[...document.querySelectorAll('[data-charm-slot]')];return ns.map((e,i)=>({name:e.value.trim(),slot:Number(ss[i]?.value||2)})).filter(x=>x.name)}
-function clearTemplate(){document.querySelectorAll('[data-equip]').forEach(e=>e.value='');document.querySelectorAll('[id^="decos-"]').forEach(e=>e.innerHTML='');$id('charm').value='';$id('charmDecos').innerHTML='';$id('skills').innerHTML='';$id('json').value='';document.querySelectorAll('.badge').forEach(e=>e.textContent='未確定');$id('applyStatus').textContent='テンプレート入力をクリアしました。'}$id('clearTemplate').onclick=clearTemplate;
-function bridgeEquipment(){const rows=Array.isArray(window.lastEquipmentOCR)?window.lastEquipmentOCR:[];const map={mainWeapon:'mainWeapon',head:'head',chest:'chest',arms:'arms',waist:'waist',legs:'legs'};let count=0;for(const [key,target] of Object.entries(map)){const r=rows.find(x=>x.key===key);const name=r?.best?.name||'';if(name){$id('equipmentForm').querySelector(`[data-equip="${target}"]`).value=name;$id('badge-'+target).textContent=r?.best?.decision?.level==='auto'?'自動確定':'要確認';$id('badge-'+target).className='badge'+(r?.best?.decision?.level==='auto'?'':' warn');count++}}const groups=window.decorationContext?.buildGroups||[];for(const g of groups){const arr=g.slots||[];for(const s of arr){const name=s.jewel?.name||s.ocr?.raw||'';if(!name)continue;let key=g.equipmentKey;if(key==='weapon')key='mainWeapon';if(!['mainWeapon','head','chest','arms','waist','legs'].includes(key))continue;addDeco(key,name,Number(s.slotLevel||s.slot||2));}}const charm=rows.find(x=>x.key==='charm');if(charm?.best?.name){$id('charm').value=charm.best.name;count++}$id('applyStatus').innerHTML=`OCR結果から <b>${count}</b>項目を反映しました。未照合・低信頼項目は手動確認してください。`;}
+function clearTemplate(){document.querySelectorAll('[data-equip]').forEach(e=>e.value='');document.querySelectorAll('[id^="decos-"]').forEach(e=>e.innerHTML='');$id('charm').value='';$id('charmDecos').innerHTML='';$id('skills').innerHTML='';$id('json').value='';$id('charmDBInfo').textContent='護石名をDB照合すると、スロットが自動反映されます。';$id('charmSlots').textContent='';window.templateCharmDBState=null;document.querySelectorAll('.badge').forEach(e=>e.textContent='未確定');$id('applyStatus').textContent='テンプレート入力をクリアしました。'}$id('clearTemplate').onclick=clearTemplate;
+function normalizeCharmNameForMatch(v){return String(v||'').normalize('NFKC').replace(/[\s　「」『』【】\[\]（）()・･:：/／\\_-]/g,'').toLowerCase().trim()}
+function normalizeCharmSlotLevelsOuter(v){
+  if(Array.isArray(v)) return v.map(Number).filter(Number.isFinite).map(x=>Math.max(1,Math.min(4,x))).slice(0,3);
+  if(v && typeof v==='object'){
+    if(Array.isArray(v.levels)) return normalizeCharmSlotLevelsOuter(v.levels);
+    const vals=['slot1','slot2','slot3'].map(k=>v[k]).filter(x=>x!=null);
+    if(vals.length) return normalizeCharmSlotLevelsOuter(vals);
+  }
+  if(typeof v==='string'){
+    const a=[...v.matchAll(/[1-4]/g)].map(m=>Number(m[0]));
+    return a.slice(0,3);
+  }
+  return [];
+}
+function findCharmDBRecord(ocrBest){
+  if(!ocrBest) return null;
+  const rows=Array.isArray(DB.charms)?DB.charms:[];
+  const sameId=rows.filter(c=>
+    (ocrBest.id!=null && c?.id!=null && String(c.id)===String(ocrBest.id)) ||
+    (ocrBest.gameId!=null && c?.gameId!=null && String(c.gameId)===String(ocrBest.gameId))
+  );
+  const pool=sameId.length?sameId:rows;
+  const target=normalizeCharmNameForMatch(ocrBest.name);
+  return pool.find(c=>normalizeCharmNameForMatch(c?.name)===target) ||
+         pool.find(c=>normalizeCharmNameForMatch(c?.name).includes(target)||target.includes(normalizeCharmNameForMatch(c?.name))) || null;
+}
+function applyCharmDBSlots(best){
+  const info=$id('charmDBInfo'), slots=$id('charmSlots');
+  if(!best){if(info)info.textContent='護石をDB確定できませんでした。スロットは自動設定しません。';if(slots)slots.textContent='';return null;}
+  const rec=findCharmDBRecord(best);
+  if(!rec){if(info)info.textContent=`護石「${best.name||''}」はMHDBで確定できませんでした。スロットは自動設定しません。`;if(slots)slots.textContent='';return null;}
+  const levels=normalizeCharmSlotLevelsOuter(rec?.slotLevels??rec?.decorationSlots??rec?.slots);
+  if(info)info.innerHTML=`MHDB照合：<b>${esc(rec.name||best.name||'')}</b> <span class="badge">DB確定</span>`;
+  if(slots)slots.innerHTML=levels.length?`DBスロット：<b>[${levels.join('][')}]</b>`:'DBスロット：なし';
+  return {record:rec,slotLevels:levels};
+}
+function bridgeEquipment(){
+  const rows=Array.isArray(window.lastEquipmentOCR)?window.lastEquipmentOCR:[];
+  const map={mainWeapon:'mainWeapon',head:'head',chest:'chest',arms:'arms',waist:'waist',legs:'legs'};
+  let count=0;
+  for(const [key,target] of Object.entries(map)){
+    const r=rows.find(x=>x.key===key); const name=r?.best?.name||'';
+    if(name){
+      $id('equipmentForm').querySelector(`[data-equip="${target}"]`).value=name;
+      $id('badge-'+target).textContent=r?.best?.decision?.level==='auto'?'自動確定':'要確認';
+      $id('badge-'+target).className='badge'+(r?.best?.decision?.level==='auto'?'':' warn'); count++;
+    }
+  }
+  const groups=window.decorationContext?.buildGroups||[];
+  for(const g of groups){
+    const arr=g.slots||[];
+    for(const s of arr){
+      const name=s.jewel?.name||s.ocr?.raw||''; if(!name)continue;
+      let key=g.equipmentKey; if(key==='weapon')key='mainWeapon';
+      if(!['mainWeapon','head','chest','arms','waist','legs'].includes(key))continue;
+      addDeco(key,name,Number(s.slotLevel||s.slot||2));
+    }
+  }
+  const charm=rows.find(x=>x.key==='charm');
+  let charmDBState=null;
+  if(charm?.best?.name){
+    $id('charm').value=charm.best.name;
+    charmDBState=applyCharmDBSlots(charm.best);
+    count++;
+  }else applyCharmDBSlots(null);
+  window.templateCharmDBState=charmDBState;
+  $id('applyStatus').innerHTML=`OCR結果から <b>${count}</b>項目を反映しました。護石スロットはDB照合できた場合のみ自動設定しています。`;
+}
 $id('applyOCR').onclick=()=>bridgeEquipment();
-function makeTemplate(){const armor={};for(const [k] of slots){const e=document.querySelector(`[data-equip="${k}"]`);armor[k]={name:(e?.value||'').trim(),decorations:readDecos(k)}}const weapon=document.querySelector('[data-equip="mainWeapon"]')?.value.trim()||'';const skills={};document.querySelectorAll('[data-skill-name]').forEach((e,i)=>{const n=e.value.trim();if(n)skills[n]=Number(document.querySelectorAll('[data-skill-level]')[i]?.value||1)});return {templates:[{weapon_type:$id('weaponType').value,weapon_name_jp:$id('weaponType').selectedOptions[0].textContent,builds:[{id:'custom_'+Date.now(),creator:$id('creator').value.trim()||'未入力',build_name:$id('buildName').value.trim()||'未命名ビルド',source:$id('source').value.trim()||'未入力',source_url:$id('sourceUrl').value.trim(),weapons:weapon,weapon:{name:weapon,decorations:readDecos('mainWeapon')},armor,charm:$id('charm').value.trim(),charm_decorations:readCharmDecos(),skills,notes:$id('notes').value.trim()}]}]}}
+function makeTemplate(){const armor={};for(const [k] of slots){const e=document.querySelector(`[data-equip="${k}"]`);armor[k]={name:(e?.value||'').trim(),decorations:readDecos(k)}}const weapon=document.querySelector('[data-equip="mainWeapon"]')?.value.trim()||'';const skills={};document.querySelectorAll('[data-skill-name]').forEach((e,i)=>{const n=e.value.trim();if(n)skills[n]=Number(document.querySelectorAll('[data-skill-level]')[i]?.value||1)});return {templates:[{weapon_type:$id('weaponType').value,weapon_name_jp:$id('weaponType').selectedOptions[0].textContent,builds:[{id:'custom_'+Date.now(),creator:$id('creator').value.trim()||'未入力',build_name:$id('buildName').value.trim()||'未命名ビルド',source:$id('source').value.trim()||'未入力',source_url:$id('sourceUrl').value.trim(),weapons:weapon,weapon:{name:weapon,decorations:readDecos('mainWeapon')},armor,charm:$id('charm').value.trim(),charm_slots:Array.isArray(window.templateCharmDBState?.slotLevels)?window.templateCharmDBState.slotLevels:[],charm_db_id:window.templateCharmDBState?.record?.id??null,charm_db_gameId:window.templateCharmDBState?.record?.gameId??null,charm_decorations:readCharmDecos(),skills,notes:$id('notes').value.trim()}]}]}}
 $id('makeJSON').onclick=()=>{$id('json').value=JSON.stringify(makeTemplate(),null,2)};$id('copyJSON').onclick=async()=>{$id('json').value||($id('json').value=JSON.stringify(makeTemplate(),null,2));try{await navigator.clipboard.writeText($id('json').value);$id('applyStatus').textContent='JSONをコピーしました。'}catch(e){}};$id('downloadJSON').onclick=()=>{$id('json').value||($id('json').value=JSON.stringify(makeTemplate(),null,2));const blob=new Blob([$id('json').value],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mhwilds_build_template.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
 loadSavedDB();renderCounts();
 </script>
